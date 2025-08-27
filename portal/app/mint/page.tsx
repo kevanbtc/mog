@@ -8,8 +8,26 @@ import { useAccount } from 'wagmi';
 export default function MintPage() {
   const { address, isConnected } = useAccount();
   const [domainName, setDomainName] = useState('');
+  const [selectedTLD, setSelectedTLD] = useState('x');
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [paymentMethod, setPaymentMethod] = useState('MATIC');
+  const [affiliateCode, setAffiliateCode] = useState('');
+
+  const TLD_OPTIONS = [
+    { value: 'x', name: 'Digital Giant (.x)', price: '0.001 MATIC', description: 'Base domain registry' },
+    { value: 'gold', name: 'Gold Registry (.gold)', price: '$25 - $2,500', description: 'Precious metals backed domains' },
+    { value: 'oil', name: 'Oil Registry (.oil)', price: '$125 - $12,500', description: 'Energy sector domains' },
+    { value: 'bank', name: 'Bank Registry (.bank)', price: '$2,500 - $125,000', description: 'Banking & financial institutions' },
+    { value: 'real', name: 'Real Estate (.real)', price: '$250 - $125,000', description: 'Property & RWA tokenization' },
+    { value: 'usd', name: 'Currency (.usd)', price: '$1,250 - $250,000', description: 'Stablecoins & forex trading' }
+  ];
+
+  const PAYMENT_METHODS = [
+    { value: 'MATIC', name: 'MATIC', description: 'Pay with Polygon MATIC' },
+    { value: 'USDC', name: 'USDC', description: 'Pay with USD Coin stablecoin' },
+    { value: 'USDT', name: 'USDT', description: 'Pay with Tether stablecoin' }
+  ];
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -24,7 +42,10 @@ export default function MintPage() {
     setIsLoading(true);
     try {
       // TODO: Implement minting logic
-      console.log('Minting domain:', domainName);
+      console.log('Minting domain:', `${domainName}.${selectedTLD}`);
+      console.log('TLD:', selectedTLD);
+      console.log('Payment method:', paymentMethod);
+      console.log('Affiliate code:', affiliateCode);
       console.log('Files to upload:', uploadedFiles);
       
       // Placeholder for actual implementation
@@ -85,6 +106,40 @@ export default function MintPage() {
           /* Minting Form */
           <div className="glass-morphism p-8 rounded-2xl border border-white/20">
             <form onSubmit={handleMint} className="space-y-8">
+              {/* TLD Selection */}
+              <div>
+                <label className="block text-white font-semibold mb-2">
+                  Select Registry
+                </label>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                  {TLD_OPTIONS.map((tld) => (
+                    <div 
+                      key={tld.value}
+                      onClick={() => setSelectedTLD(tld.value)}
+                      className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                        selectedTLD === tld.value 
+                          ? 'border-blue-400 bg-blue-400/10' 
+                          : 'border-white/20 bg-black/20 hover:border-white/40'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2 mb-2">
+                        <input
+                          type="radio"
+                          name="tld"
+                          value={tld.value}
+                          checked={selectedTLD === tld.value}
+                          onChange={() => setSelectedTLD(tld.value)}
+                          className="text-blue-400"
+                        />
+                        <h3 className="text-white font-semibold">{tld.name}</h3>
+                      </div>
+                      <p className="text-sm text-gray-300 mb-1">{tld.description}</p>
+                      <p className="text-xs text-blue-400 font-mono">{tld.price}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Domain Name Input */}
               <div>
                 <label className="block text-white font-semibold mb-2">
@@ -100,11 +155,61 @@ export default function MintPage() {
                     required
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
-                    .x
+                    .{selectedTLD}
                   </span>
                 </div>
                 <p className="text-sm text-gray-400 mt-2">
-                  Your domain will be: <span className="text-blue-400 font-mono">{domainName || 'yourdomain'}.x</span>
+                  Your domain will be: <span className="text-blue-400 font-mono">{domainName || 'yourdomain'}.{selectedTLD}</span>
+                </p>
+              </div>
+
+              {/* Payment Method Selection */}
+              <div>
+                <label className="block text-white font-semibold mb-2">
+                  Payment Method
+                </label>
+                <div className="grid md:grid-cols-3 gap-4">
+                  {PAYMENT_METHODS.map((method) => (
+                    <div 
+                      key={method.value}
+                      onClick={() => setPaymentMethod(method.value)}
+                      className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                        paymentMethod === method.value 
+                          ? 'border-green-400 bg-green-400/10' 
+                          : 'border-white/20 bg-black/20 hover:border-white/40'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2 mb-2">
+                        <input
+                          type="radio"
+                          name="payment"
+                          value={method.value}
+                          checked={paymentMethod === method.value}
+                          onChange={() => setPaymentMethod(method.value)}
+                          className="text-green-400"
+                        />
+                        <h3 className="text-white font-semibold">{method.name}</h3>
+                      </div>
+                      <p className="text-sm text-gray-400">{method.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Affiliate Code */}
+              <div>
+                <label className="block text-white font-semibold mb-2">
+                  Affiliate Code (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter affiliate code for commission"
+                  value={affiliateCode}
+                  onChange={(e) => setAffiliateCode(e.target.value)}
+                  className="w-full bg-black/20 text-white placeholder-gray-400 border border-white/20 rounded-xl px-4 py-3 focus:border-purple-400 focus:outline-none transition-colors"
+                />
+                <p className="text-sm text-gray-400 mt-2">
+                  Get a discount and support your referrer with our affiliate program
                 </p>
               </div>
 
@@ -171,11 +276,17 @@ export default function MintPage() {
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="text-white font-semibold text-lg">Minting Cost</h3>
-                    <p className="text-gray-300">Gas fees + domain registration</p>
+                    <p className="text-gray-300">{selectedTLD === 'x' ? 'Base registry pricing' : 'Enterprise registry pricing'}</p>
+                    <p className="text-sm text-gray-400 mt-1">Payment: {paymentMethod} • Registry: .{selectedTLD}</p>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-white">~0.001 MATIC</div>
+                    <div className="text-2xl font-bold text-white">
+                      {TLD_OPTIONS.find(tld => tld.value === selectedTLD)?.price || '~0.001 MATIC'}
+                    </div>
                     <div className="text-sm text-gray-400">+ gas fees</div>
+                    {affiliateCode && (
+                      <div className="text-xs text-green-400 mt-1">🎯 Affiliate discount applied</div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -192,7 +303,7 @@ export default function MintPage() {
                     <span>Minting Domain...</span>
                   </div>
                 ) : (
-                  `🚀 Mint ${domainName || 'Domain'}.x`
+                  `🚀 Mint ${domainName || 'Domain'}.${selectedTLD}`
                 )}
               </button>
             </form>
