@@ -9,7 +9,7 @@ const ADMIN_ADDRESS = "0x8aced25DC8530FDaf0f86D53a0A1E02AAfA7Ac7A";
 const TREASURY_ADDRESS = "0x8aced25DC8530FDaf0f86D53a0A1E02AAfA7Ac7A";
 
 async function main() {
-    console.log("🚀 Deploying AtomicSettlementBus to Polygon...");
+    console.log("🚀 Deploying Settlement + Affiliate System to Polygon...");
     console.log(`Admin: ${ADMIN_ADDRESS}`);
     console.log(`Treasury: ${TREASURY_ADDRESS}`);
     
@@ -74,7 +74,43 @@ async function main() {
     console.log(`ATOMIC_SETTLEMENT_BUS_ADDRESS=${address}`);
     console.log(`NEXT_PUBLIC_SETTLEMENT_BUS=${address}`);
     
+    console.log("\n🎯 Deploying AffiliateRegistry...");
+    
+    // Deploy AffiliateRegistry
+    const AffiliateRegistry = await hre.ethers.getContractFactory("AffiliateRegistry");
+    const affiliateGasEstimate = await AffiliateRegistry.signer.estimateGas(
+        AffiliateRegistry.getDeployTransaction(ADMIN_ADDRESS)
+    );
+    const affiliateGas = Math.floor(Number(affiliateGasEstimate) * 1.3);
+    
+    const affiliateRegistry = await AffiliateRegistry.deploy(ADMIN_ADDRESS, {
+        gasLimit: affiliateGas
+    });
+    
+    console.log("⏳ Waiting for AffiliateRegistry deployment...");
+    const deployedAffiliate = await affiliateRegistry.waitForDeployment();
+    const affiliateAddress = await deployedAffiliate.getAddress();
+    
+    const affiliateReceipt = await affiliateRegistry.deploymentTransaction().wait();
+    
+    console.log("✅ AffiliateRegistry deployed successfully!");
+    console.log(`📍 Contract Address: ${affiliateAddress}`);
+    console.log(`🏗️  Transaction Hash: ${affiliateReceipt.hash}`);
+    console.log(`🔗 Polygonscan: https://polygonscan.com/address/${affiliateAddress}`);
+    
+    // Output all environment variables
+    console.log("\n📝 Add to your .env file:");
+    console.log(`ATOMIC_SETTLEMENT_BUS_ADDRESS=${address}`);
+    console.log(`AFFILIATE_REGISTRY_ADDRESS=${affiliateAddress}`);
+    console.log(`NEXT_PUBLIC_SETTLEMENT_BUS=${address}`);
+    console.log(`NEXT_PUBLIC_AFFILIATE_REGISTRY=${affiliateAddress}`);
+    
     console.log("\n🚀 Ready for stablecoin payments and affiliate program!");
+    console.log("\n💰 System now supports:");
+    console.log("   • USDC/USDT payments");
+    console.log("   • 5-10% affiliate commissions");
+    console.log("   • Automatic tier upgrades");
+    console.log("   • Real-time commission tracking");
 }
 
 main()
